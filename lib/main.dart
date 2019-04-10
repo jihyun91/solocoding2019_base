@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:solocoding2019_base/widgets/location/my_location.dart';
+import 'package:solocoding2019_base/widgets/picker/image.dart';
 
 void main() => runApp(MyApp());
 
@@ -22,7 +24,7 @@ class MyAppState extends State<MyApp> {
           title: Text('Welcome to Flutter'), // app bar title
         ),
         body: Center(
-          child: Text('Hello, world'), // center text
+          child: MyHomePage(), // center text
         ),
       ),
     );
