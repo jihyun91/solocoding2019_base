@@ -41,17 +41,19 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     // TODO: implement initState
     super.initState();
 
-    _getLocation().then((position) {
-      fetchPost().then((json) {
-        setState(() {
-          widget.postResult = json;
-        });
+    fetchPost().then((json) {
+      setState(() {
+        widget.postResult = json;
       });
+    });
+
+    setState(() {
+//        widget.img = AssetImage('graphics/sunny.jpg');
+    });
+
+    _getLocation().then((position) {
       setState(() {
         widget.userLocation = position;
-      });
-      setState(() {
-//        widget.img = AssetImage('graphics/sunny.jpg');
       });
     });
   }
@@ -122,7 +124,7 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           new Padding(
             padding:
             const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-            child: widget.postResult == null ? new Text('') : new Text('위도 :' + widget.postResult.body + '경도 : 22222'),
+            child: widget.userLocation == null ? new Text('') : new Text('위도 :' + widget.userLocation.latitude.toString() + '경도 : ' + widget.userLocation.longitude.toString()),
           )
         ],
       ),
