@@ -1,22 +1,67 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class WeatherDetailPage extends StatefulWidget {
-  WeatherDetailPage();
+  Geolocator geolocator = Geolocator();
+  Position userLocation;
+  Post postResult;
+  double weatherImageSize = 150.0;
+  String imageUrl;
+  AssetImage img = AssetImage('graphics/weather.jpg');
 
   @override
   _WeatherDetailPageState createState() => new _WeatherDetailPageState();
 }
 
+// Model: Post
+class Post {
+  final int userId;
+  final int id;
+  final String title;
+  final String body;
+
+  Post({this.userId, this.id, this.title, this.body});
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      userId: json['userId'],
+      id: json['id'],
+      title: json['title'],
+      body: json['body'],
+    );
+  }
+}
+
 class _WeatherDetailPageState extends State<WeatherDetailPage> {
-  double weatherImageSize = 150.0;
-  String imageUrl;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _getLocation().then((position) {
+      fetchPost().then((json) {
+        setState(() {
+          widget.postResult = json;
+        });
+      });
+      setState(() {
+        widget.userLocation = position;
+      });
+      setState(() {
+//        widget.img = AssetImage('graphics/sunny.jpg');
+      });
+    });
+  }
 
   Widget get weatherImage {
     return new Hero(
       tag:'hero',
       child: new Container(
-        height: weatherImageSize,
-        width: weatherImageSize,
+        height: widget.weatherImageSize,
+        width: widget.weatherImageSize,
         constraints: new BoxConstraints(),
         decoration: new BoxDecoration(
           shape: BoxShape.circle,
@@ -39,7 +84,7 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           ],
           image: new DecorationImage(
             fit: BoxFit.cover,
-            image: AssetImage('graphics/weather.jpg'),
+            image: widget.img,
           ),
         ),
       ),
@@ -77,11 +122,35 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           new Padding(
             padding:
             const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-            child: new Text('위도 : 1111, 경도 : 22222'),
+            child: widget.postResult == null ? new Text('') : new Text('위도 :' + widget.postResult.body + '경도 : 22222'),
           )
         ],
       ),
     );
+  }
+
+  Future<Position> _getLocation() async {
+    var currentLocation;
+    try {
+      currentLocation = await widget.geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.best);
+    } catch (e) {
+      currentLocation = null;
+    }
+    return currentLocation;
+  }
+
+  // Service: fetchPost
+  Future<Post> fetchPost() async {
+    final url = 'https://jsonplaceholder.typicode.com/posts/1';
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      return Post.fromJson(jsonBody);
+    } else {
+      throw Exception('Failed to load post');
+    }
   }
 
   @override

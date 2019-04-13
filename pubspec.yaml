@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   image_picker : ^0.5.2
   geolocator: '^3.0.1'
+  http: ^0.11.3+17
 
 dev_dependencies:
   flutter_test:
