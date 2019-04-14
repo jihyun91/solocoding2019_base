@@ -8,6 +8,7 @@ class WeatherDetailPage extends StatefulWidget {
   Geolocator geolocator = Geolocator();
   Position userLocation;
   Post postResult;
+  List<dynamic> curWeather;
   double weatherImageSize = 150.0;
   String imageUrl;
   AssetImage img = AssetImage('graphics/weather.jpg');
@@ -35,26 +36,46 @@ class Post {
   }
 }
 
+class Weather {
+  int id;
+  String main;
+  String description;
+  String icon;
+}
+
+class WeatherInfo {
+  List<dynamic> weather;
+
+  WeatherInfo({this.weather});
+
+  factory WeatherInfo.fromJson(Map<String, dynamic> json) {
+    return WeatherInfo(
+      weather: json['weather']
+    );
+  }
+}
+
 class _WeatherDetailPageState extends State<WeatherDetailPage> {
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    fetchPost().then((json) {
+    _getLocation().then((position) {
       setState(() {
-        widget.postResult = json;
+        widget.userLocation = position;
+      });
+
+      fetchWeather(position).then((json) {
+        setState(() {
+          widget.curWeather = json.weather;
+          print(widget.curWeather[0]['main']);
+        });
       });
     });
 
     setState(() {
 //        widget.img = AssetImage('graphics/sunny.jpg');
-    });
-
-    _getLocation().then((position) {
-      setState(() {
-        widget.userLocation = position;
-      });
     });
   }
 
@@ -117,8 +138,9 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
             '서울',
             style: new TextStyle(fontSize: 32.0),
           ),
+          widget.curWeather == null ? new Text('') :
           new Text(
-            '맑음',
+            widget.curWeather[0]['main'],
             style: new TextStyle(fontSize: 20.0),
           ),
           new Padding(
@@ -143,13 +165,13 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
   }
 
   // Service: fetchPost
-  Future<Post> fetchPost() async {
-    final url = 'https://jsonplaceholder.typicode.com/posts/1';
+  Future<WeatherInfo> fetchWeather(Position position) async {
+    final url = 'https://api.openweathermap.org/data/2.5/weather?lat='+position.latitude.toString()+'&lon='+position.longitude.toString()+'&appid=9201513ac5885bdafe715190e9234aaf';
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
-      return Post.fromJson(jsonBody);
+      return WeatherInfo.fromJson(jsonBody);
     } else {
       throw Exception('Failed to load post');
     }
