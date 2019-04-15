@@ -9,6 +9,7 @@ class WeatherDetailPage extends StatefulWidget {
   Position userLocation;
   Post postResult;
   List<dynamic> curWeather;
+  String curLocale;
   double weatherImageSize = 150.0;
   String imageUrl;
   AssetImage img = AssetImage('graphics/weather.jpg');
@@ -44,13 +45,15 @@ class Weather {
 }
 
 class WeatherInfo {
-  List<dynamic> weather;
+  final List<dynamic> weather;
+  final String name;
 
-  WeatherInfo({this.weather});
+  WeatherInfo({this.weather, this.name});
 
   factory WeatherInfo.fromJson(Map<String, dynamic> json) {
     return WeatherInfo(
-      weather: json['weather']
+      weather: json['weather'],
+      name: json['name']
     );
   }
 }
@@ -69,7 +72,9 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
       fetchWeather(position).then((json) {
         setState(() {
           widget.curWeather = json.weather;
+          widget.curLocale = json.name;
           print(widget.curWeather[0]['main']);
+          print(widget.curLocale);
         });
       });
     });
@@ -134,11 +139,12 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           weatherImage,
+          widget.curLocale == null ? new Text('위치정보 셋팅 중') :
           new Text(
-            '서울',
+            widget.curLocale,
             style: new TextStyle(fontSize: 32.0),
           ),
-          widget.curWeather == null ? new Text('') :
+          widget.curWeather == null ? new Text('날씨 정보 셋팅 중') :
           new Text(
             widget.curWeather[0]['main'],
             style: new TextStyle(fontSize: 20.0),
@@ -146,7 +152,7 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           new Padding(
             padding:
             const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-            child: widget.userLocation == null ? new Text('') : new Text('위도 :' + widget.userLocation.latitude.toString() + '경도 : ' + widget.userLocation.longitude.toString()),
+            child: widget.userLocation == null ? new Text('위도경도 정보 셋팅 중') : new Text('위도 : ' + widget.userLocation.latitude.toString() + ' 경도 : ' + widget.userLocation.longitude.toString()),
           )
         ],
       ),

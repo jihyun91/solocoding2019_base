@@ -23,7 +23,7 @@ class MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Welcome to Flutter'), // app bar title
+          title: Text('Welcome to Weather App'), // app bar title
         ),
         body: Center(
           child: WeatherDetailPage(), // center text
