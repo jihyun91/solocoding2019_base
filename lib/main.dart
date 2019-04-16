@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solocoding2019_base/widgets/location/my_location.dart';
 import 'package:solocoding2019_base/widgets/main/view_weather.dart';
 import 'package:solocoding2019_base/widgets/picker/image.dart';
+import 'package:solocoding2019_base/widgets/test/background.dart';
 import 'package:solocoding2019_base/widgets/test/http.dart';
 
 void main() => runApp(MyApp());
