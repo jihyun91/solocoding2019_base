@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
+import  '../../models/weather_model.dart';
+
 class WeatherDetailPage extends StatefulWidget {
   Geolocator geolocator = Geolocator();
   Position userLocation;
-  Post postResult;
   List<dynamic> curWeather;
+  String curLocale;
   double weatherImageSize = 150.0;
   String imageUrl;
   AssetImage img = AssetImage('graphics/weather.jpg');
@@ -17,66 +19,11 @@ class WeatherDetailPage extends StatefulWidget {
   _WeatherDetailPageState createState() => new _WeatherDetailPageState();
 }
 
-// Model: Post
-class Post {
-  final int userId;
-  final int id;
-  final String title;
-  final String body;
-
-  Post({this.userId, this.id, this.title, this.body});
-
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      userId: json['userId'],
-      id: json['id'],
-      title: json['title'],
-      body: json['body'],
-    );
-  }
-}
-
-class Weather {
-  int id;
-  String main;
-  String description;
-  String icon;
-}
-
-class WeatherInfo {
-  List<dynamic> weather;
-
-  WeatherInfo({this.weather});
-
-  factory WeatherInfo.fromJson(Map<String, dynamic> json) {
-    return WeatherInfo(
-      weather: json['weather']
-    );
-  }
-}
-
 class _WeatherDetailPageState extends State<WeatherDetailPage> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    _getLocation().then((position) {
-      setState(() {
-        widget.userLocation = position;
-      });
-
-      fetchWeather(position).then((json) {
-        setState(() {
-          widget.curWeather = json.weather;
-          print(widget.curWeather[0]['main']);
-        });
-      });
-    });
-
-    setState(() {
-//        widget.img = AssetImage('graphics/sunny.jpg');
-    });
+    _fetchCurLocationAndWeather();
   }
 
   Widget get weatherImage {
@@ -114,6 +61,20 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     );
   }
 
+  Widget get selectedLocaleBtns {
+    return new FittedBox(
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: _onClickCurLocaleBtn, child: Text('Cur Locale'), color: Colors.lightBlueAccent),
+            ]
+        )
+    );
+  }
+
   Widget get weatherView {
     return new Container(
       padding: new EdgeInsets.symmetric(vertical: 32.0),
@@ -133,12 +94,14 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
       child: new Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
+          selectedLocaleBtns,
           weatherImage,
+          widget.curLocale == null ? new Text('위치정보 셋팅 중') :
           new Text(
-            '서울',
+            widget.curLocale,
             style: new TextStyle(fontSize: 32.0),
           ),
-          widget.curWeather == null ? new Text('') :
+          widget.curWeather == null ? new Text('날씨 정보 셋팅 중') :
           new Text(
             widget.curWeather[0]['main'],
             style: new TextStyle(fontSize: 20.0),
@@ -146,11 +109,48 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           new Padding(
             padding:
             const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-            child: widget.userLocation == null ? new Text('') : new Text('위도 :' + widget.userLocation.latitude.toString() + '경도 : ' + widget.userLocation.longitude.toString()),
+            child: widget.userLocation == null ? new Text('위도경도 정보 셋팅 중') : new Text('위도 : ' + widget.userLocation.latitude.toString() + ' 경도 : ' + widget.userLocation.longitude.toString()),
           )
         ],
       ),
     );
+  }
+
+  void _onClickSeoulBtn() async {
+    double longitude = 121.0;
+    double latitude = 32.0;
+
+    Position position = new Position(latitude: latitude, longitude: longitude);
+
+    _fetchWeather(latitude.toString(), longitude.toString()).then((json) {
+      setState(() {
+        widget.userLocation = position;
+        widget.curWeather = json.weather;
+        widget.curLocale = json.name;
+      });
+    });
+  }
+
+  void _onClickCurLocaleBtn() async {
+    _fetchCurLocationAndWeather();
+  }
+
+  void _fetchCurLocationAndWeather() {
+    _getLocation().then((position) {
+      setState(() {
+        widget.userLocation = position;
+      });
+
+      _fetchWeather(position.latitude.toString(), position.longitude.toString()).then((json) {
+        setState(() {
+          widget.curWeather = json.weather;
+          widget.curLocale = json.name;
+        });
+        setState(() {
+//        widget.img = AssetImage('graphics/sunny.jpg');
+        });
+      });
+    });
   }
 
   Future<Position> _getLocation() async {
@@ -164,16 +164,15 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     return currentLocation;
   }
 
-  // Service: fetchPost
-  Future<WeatherInfo> fetchWeather(Position position) async {
-    final url = 'https://api.openweathermap.org/data/2.5/weather?lat='+position.latitude.toString()+'&lon='+position.longitude.toString()+'&appid=9201513ac5885bdafe715190e9234aaf';
+  Future<WeatherInfo> _fetchWeather(String latitude, String longitude) async {
+    final url = 'https://api.openweathermap.org/data/2.5/weather?lat='+latitude+'&lon='+longitude+'&appid=9201513ac5885bdafe715190e9234aaf';
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
       return WeatherInfo.fromJson(jsonBody);
     } else {
-      throw Exception('Failed to load post');
+      throw Exception('Failed to load weather');
     }
   }
 
