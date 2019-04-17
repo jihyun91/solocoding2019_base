@@ -66,9 +66,9 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Seoul"), child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Daejeon"), child: Text('Daejeon'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Busan"), child: Text('Busan'), color: Colors.lightBlueAccent),
               RaisedButton(onPressed: _onClickCurLocaleBtn, child: Text('Cur Locale'), color: Colors.lightBlueAccent),
             ]
         )
@@ -116,9 +116,29 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     );
   }
 
-  void _onClickSeoulBtn() async {
-    double longitude = 121.0;
-    double latitude = 32.0;
+  void _onClickCityBtn(String city) async {
+    double latitude;
+    double longitude;
+
+    switch (city) {
+      case "Seoul": {
+        latitude = 37.56;
+        longitude = 126.97;
+      }
+      break;
+
+      case "Daejeon" : {
+        latitude = 36.35;
+        longitude = 127.38;
+      }
+      break;
+
+      case "Busan" : {
+        latitude = 35.17;
+        longitude = 129.07;
+      }
+      break;
+    }
 
     Position position = new Position(latitude: latitude, longitude: longitude);
 
