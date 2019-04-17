@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:solocoding2019_base/widgets/main/forecast_list.dart';
 
 import  '../../models/weather_model.dart';
 
@@ -107,10 +108,19 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
             style: new TextStyle(fontSize: 20.0),
           ),
           new Padding(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
             child: widget.userLocation == null ? new Text('위도경도 정보 셋팅 중') : new Text('위도 : ' + widget.userLocation.latitude.toString() + ' 경도 : ' + widget.userLocation.longitude.toString()),
-          )
+          ),
+          new Divider(),
+          new Text(
+            '최근 3일 후 예보',
+            style: new TextStyle(fontSize: 18.0, color : Colors.deepOrange),
+          ),
+          new Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            height: 300,
+            child: new ForecastList(weathers: _getForecast(),)
+          ),
         ],
       ),
     );
@@ -194,6 +204,15 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     } else {
       throw Exception('Failed to load weather');
     }
+  }
+
+  List<Weather> _getForecast() {
+    var forcasts = <Weather>[]
+    ..add(new Weather(icon:'sample'))
+    ..add(new Weather(icon:'sample'))
+    ..add(new Weather(icon:'sample'));
+
+    return forcasts;
   }
 
   @override

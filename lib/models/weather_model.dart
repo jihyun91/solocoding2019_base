@@ -17,4 +17,6 @@ class Weather {
   String main;
   String description;
   String icon;
+
+  Weather({this.id, this.main, this.description, this.icon});
 }
