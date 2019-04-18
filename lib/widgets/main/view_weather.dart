@@ -157,6 +157,7 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         widget.userLocation = position;
         widget.curWeather = json.weather;
         widget.curLocale = json.name;
+        widget.img = _getWeatherImg(json.weather[0]['main']);
       });
     });
   }
@@ -175,9 +176,7 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         setState(() {
           widget.curWeather = json.weather;
           widget.curLocale = json.name;
-        });
-        setState(() {
-//        widget.img = AssetImage('graphics/sunny.jpg');
+          widget.img = _getWeatherImg(json.weather[0]['main']);
         });
       });
     });
@@ -206,6 +205,18 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     }
   }
 
+  Future<WeatherInfo> _fetchForecast(String latitude, String longitude) async {
+    final url = 'https://api.openweathermap.org/data/2.5/weather?lat='+latitude+'&lon='+longitude+'&appid=9201513ac5885bdafe715190e9234aaf';
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      return WeatherInfo.fromJson(jsonBody);
+    } else {
+      throw Exception('Failed to load weather');
+    }
+  }
+
   List<Weather> _getForecast() {
     var forcasts = <Weather>[]
     ..add(new Weather(icon:'sample'))
@@ -213,6 +224,49 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     ..add(new Weather(icon:'sample'));
 
     return forcasts;
+  }
+
+  AssetImage _getWeatherImg(String weather) {
+    var path;
+
+    switch (weather) {
+      case "Clear": {
+        path = 'graphics/sunny.jpg';
+      }
+      break;
+
+      case "Clouds" : {
+        path = 'graphics/cloud.png';
+      }
+      break;
+
+      case "Snow" : {
+        path = 'graphics/snow.png';
+      }
+      break;
+
+      case "Rain" : {
+        path = 'graphics/rain.png';
+      }
+      break;
+
+      case "Drizzle" : {
+        path = 'graphics/rain.png';
+      }
+      break;
+
+      case "Thunderstorm" : {
+        path = 'graphics/thunder.png';
+      }
+      break;
+
+      default : {
+        path = 'graphics/haze.png';
+      }
+      break;
+    }
+
+    return AssetImage(path);
   }
 
   @override
