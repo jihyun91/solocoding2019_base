@@ -11,6 +11,8 @@ class WeatherDetailPage extends StatefulWidget {
   Geolocator geolocator = Geolocator();
   Position userLocation;
   List<dynamic> curWeather;
+  var weathers = <Weather>[]
+    ..add(new Weather(main: '', date: ''));
   String curLocale;
   double weatherImageSize = 150.0;
   String imageUrl;
@@ -113,13 +115,15 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           ),
           new Divider(),
           new Text(
-            '최근 3일 후 예보',
+            '최근 4일 시간 별 예보',
             style: new TextStyle(fontSize: 18.0, color : Colors.deepOrange),
           ),
           new Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             height: 300,
-            child: new ForecastList(weathers: _getForecast(),)
+            child: new Scrollbar(
+              child : new ForecastList(weathers: widget.weathers)
+            )
           ),
         ],
       ),
@@ -158,6 +162,12 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         widget.curWeather = json.weather;
         widget.curLocale = json.name;
         widget.img = _getWeatherImg(json.weather[0]['main']);
+
+        _getForecast(position.latitude.toString(), position.longitude.toString()).then((onValue) {
+          setState(() {
+            widget.weathers = onValue;
+          });
+        });
       });
     });
   }
@@ -177,6 +187,12 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
           widget.curWeather = json.weather;
           widget.curLocale = json.name;
           widget.img = _getWeatherImg(json.weather[0]['main']);
+
+          _getForecast(position.latitude.toString(), position.longitude.toString()).then((onValue) {
+            setState(() {
+              widget.weathers = onValue;
+            });
+          });
         });
       });
     });
@@ -205,25 +221,26 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     }
   }
 
-  Future<WeatherInfo> _fetchForecast(String latitude, String longitude) async {
-    final url = 'https://api.openweathermap.org/data/2.5/weather?lat='+latitude+'&lon='+longitude+'&appid=9201513ac5885bdafe715190e9234aaf';
+  Future<Forecast> _fetchForecast(String latitude, String longitude) async {
+    final url = 'https://api.openweathermap.org/data/2.5/forecast/hourly?lat=$latitude&lon=$longitude&appid=9201513ac5885bdafe715190e9234aaf';
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
-      return WeatherInfo.fromJson(jsonBody);
+      return Forecast.fromJson(jsonBody);
     } else {
       throw Exception('Failed to load weather');
     }
   }
 
-  List<Weather> _getForecast() {
-    var forcasts = <Weather>[]
-    ..add(new Weather(icon:'sample'))
-    ..add(new Weather(icon:'sample'))
-    ..add(new Weather(icon:'sample'));
+  Future<List<Weather>> _getForecast(String latitude, String longitude) async {
+    final forecast = await _fetchForecast(latitude, longitude);
 
-    return forcasts;
+    List<Weather> weatherList = forecast.list.map((data) {
+      return new Weather(main : data['weather'][0]['main'], date: data['dt_txt']);
+    }).toList();
+
+    return weatherList;
   }
 
   AssetImage _getWeatherImg(String weather) {
