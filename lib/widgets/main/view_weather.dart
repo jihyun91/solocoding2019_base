@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:solocoding2019_base/widgets/main/forecast_list.dart';
 
 import  '../../models/weather_model.dart';
 
@@ -10,6 +11,8 @@ class WeatherDetailPage extends StatefulWidget {
   Geolocator geolocator = Geolocator();
   Position userLocation;
   List<dynamic> curWeather;
+  var weathers = <Weather>[]
+    ..add(new Weather(main: '', date: ''));
   String curLocale;
   double weatherImageSize = 150.0;
   String imageUrl;
@@ -66,9 +69,9 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
-              RaisedButton(onPressed: _onClickSeoulBtn, child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Seoul"), child: Text('Seoul'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Daejeon"), child: Text('Daejeon'), color: Colors.lightBlueAccent),
+              RaisedButton(onPressed: () => _onClickCityBtn("Busan"), child: Text('Busan'), color: Colors.lightBlueAccent),
               RaisedButton(onPressed: _onClickCurLocaleBtn, child: Text('Cur Locale'), color: Colors.lightBlueAccent),
             ]
         )
@@ -107,18 +110,49 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
             style: new TextStyle(fontSize: 20.0),
           ),
           new Padding(
-            padding:
-            const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
             child: widget.userLocation == null ? new Text('위도경도 정보 셋팅 중') : new Text('위도 : ' + widget.userLocation.latitude.toString() + ' 경도 : ' + widget.userLocation.longitude.toString()),
-          )
+          ),
+          new Divider(),
+          new Text(
+            '최근 4일 시간 별 예보',
+            style: new TextStyle(fontSize: 18.0, color : Colors.deepOrange),
+          ),
+          new Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            height: 300,
+            child: new Scrollbar(
+              child : new ForecastList(weathers: widget.weathers)
+            )
+          ),
         ],
       ),
     );
   }
 
-  void _onClickSeoulBtn() async {
-    double longitude = 121.0;
-    double latitude = 32.0;
+  void _onClickCityBtn(String city) async {
+    double latitude;
+    double longitude;
+
+    switch (city) {
+      case "Seoul": {
+        latitude = 37.56;
+        longitude = 126.97;
+      }
+      break;
+
+      case "Daejeon" : {
+        latitude = 36.35;
+        longitude = 127.38;
+      }
+      break;
+
+      case "Busan" : {
+        latitude = 35.17;
+        longitude = 129.07;
+      }
+      break;
+    }
 
     Position position = new Position(latitude: latitude, longitude: longitude);
 
@@ -127,6 +161,13 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         widget.userLocation = position;
         widget.curWeather = json.weather;
         widget.curLocale = json.name;
+        widget.img = _getWeatherImg(json.weather[0]['main']);
+
+        _getForecast(position.latitude.toString(), position.longitude.toString()).then((onValue) {
+          setState(() {
+            widget.weathers = onValue;
+          });
+        });
       });
     });
   }
@@ -145,9 +186,13 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
         setState(() {
           widget.curWeather = json.weather;
           widget.curLocale = json.name;
-        });
-        setState(() {
-//        widget.img = AssetImage('graphics/sunny.jpg');
+          widget.img = _getWeatherImg(json.weather[0]['main']);
+
+          _getForecast(position.latitude.toString(), position.longitude.toString()).then((onValue) {
+            setState(() {
+              widget.weathers = onValue;
+            });
+          });
         });
       });
     });
@@ -174,6 +219,71 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     } else {
       throw Exception('Failed to load weather');
     }
+  }
+
+  Future<Forecast> _fetchForecast(String latitude, String longitude) async {
+    final url = 'https://api.openweathermap.org/data/2.5/forecast/hourly?lat=$latitude&lon=$longitude&appid=9201513ac5885bdafe715190e9234aaf';
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      return Forecast.fromJson(jsonBody);
+    } else {
+      throw Exception('Failed to load weather');
+    }
+  }
+
+  Future<List<Weather>> _getForecast(String latitude, String longitude) async {
+    final forecast = await _fetchForecast(latitude, longitude);
+
+    List<Weather> weatherList = forecast.list.map((data) {
+      return new Weather(main : data['weather'][0]['main'], date: data['dt_txt']);
+    }).toList();
+
+    return weatherList;
+  }
+
+  AssetImage _getWeatherImg(String weather) {
+    var path;
+
+    switch (weather) {
+      case "Clear": {
+        path = 'graphics/sunny.jpg';
+      }
+      break;
+
+      case "Clouds" : {
+        path = 'graphics/cloud.png';
+      }
+      break;
+
+      case "Snow" : {
+        path = 'graphics/snow.png';
+      }
+      break;
+
+      case "Rain" : {
+        path = 'graphics/rain.png';
+      }
+      break;
+
+      case "Drizzle" : {
+        path = 'graphics/rain.png';
+      }
+      break;
+
+      case "Thunderstorm" : {
+        path = 'graphics/thunder.png';
+      }
+      break;
+
+      default : {
+        path = 'graphics/haze.png';
+      }
+      break;
+    }
+
+    return AssetImage(path);
   }
 
   @override

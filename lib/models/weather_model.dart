@@ -17,4 +17,19 @@ class Weather {
   String main;
   String description;
   String icon;
+  String date;
+
+  Weather({this.id, this.main, this.description, this.icon, this.date});
+}
+
+class Forecast {
+  final List<dynamic> list;
+
+  Forecast({this.list});
+
+  factory Forecast.fromJson(Map<String, dynamic> json) {
+    return Forecast(
+        list: json['list']
+    );
+  }
 }
