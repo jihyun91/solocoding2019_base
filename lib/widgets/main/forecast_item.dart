@@ -27,11 +27,11 @@ class ForecastItemState extends State<ForecastItem> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               new Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: new Text('일자 : ${widget.weather.date}'),
               ),
               new Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: new Text('날씨 : ${widget.weather.main}'),
               )
             ],
