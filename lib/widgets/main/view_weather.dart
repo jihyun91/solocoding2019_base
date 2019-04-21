@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:solocoding2019_base/widgets/main/forecast_list.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import  '../../models/weather_model.dart';
 
@@ -16,6 +17,7 @@ class WeatherDetailPage extends StatefulWidget {
   String curLocale;
   double weatherImageSize = 150.0;
   String imageUrl;
+  String latelySearchLoc = '';
   AssetImage img = AssetImage('graphics/weather.jpg');
 
   @override
@@ -23,10 +25,12 @@ class WeatherDetailPage extends StatefulWidget {
 }
 
 class _WeatherDetailPageState extends State<WeatherDetailPage> {
+  final String _kLatelySearchLocPref = "latelySearchLoc";
+
   @override
   void initState() {
     super.initState();
-    _fetchCurLocationAndWeather();
+    _fetchCurLocationAndWeather(true);
   }
 
   Widget get weatherImage {
@@ -109,10 +113,15 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
             widget.curWeather[0]['main'],
             style: new TextStyle(fontSize: 20.0),
           ),
+          new Text(
+            '최근 검색 지역 : ${widget.latelySearchLoc}',
+            style: new TextStyle(fontSize: 15.0),
+          ),
           new Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
             child: widget.userLocation == null ? new Text('위도경도 정보 셋팅 중') : new Text('위도 : ' + widget.userLocation.latitude.toString() + ' 경도 : ' + widget.userLocation.longitude.toString()),
           ),
+          widget.latelySearchLoc == null ? new Text('최근 검색 지역 셋팅 중') :
           new Divider(),
           new Text(
             '최근 4일 시간 별 예보',
@@ -154,6 +163,8 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
       break;
     }
 
+    _setLatelySearchLocAndSetState(city);
+
     Position position = new Position(latitude: latitude, longitude: longitude);
 
     _fetchWeather(latitude.toString(), longitude.toString()).then((json) {
@@ -173,10 +184,10 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
   }
 
   void _onClickCurLocaleBtn() async {
-    _fetchCurLocationAndWeather();
+    _fetchCurLocationAndWeather(false);
   }
 
-  void _fetchCurLocationAndWeather() {
+  void _fetchCurLocationAndWeather(bool isInit) {
     _getLocation().then((position) {
       setState(() {
         widget.userLocation = position;
@@ -193,8 +204,30 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
               widget.weathers = onValue;
             });
           });
+
+          if (!isInit) {
+            _setLatelySearchLocAndSetState(json.name);
+          }
         });
       });
+    });
+
+    _getLatelySearchLocPref().then((onValue) {
+      setState(() {
+        widget.latelySearchLoc = onValue;
+      });
+    });
+  }
+
+  void _setLatelySearchLocAndSetState(String city) async {
+    _setLatelySearchLocPref(city).then((onValue) {
+      if (onValue) {
+        _getLatelySearchLocPref().then((onValue) {
+          setState(() {
+            widget.latelySearchLoc = onValue;
+          });
+        });
+      }
     });
   }
 
@@ -284,6 +317,18 @@ class _WeatherDetailPageState extends State<WeatherDetailPage> {
     }
 
     return AssetImage(path);
+  }
+
+  Future<String> _getLatelySearchLocPref() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString(_kLatelySearchLocPref) ?? '';
+  }
+
+  Future<bool> _setLatelySearchLocPref(String value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    return prefs.setString(_kLatelySearchLocPref, value);
   }
 
   @override

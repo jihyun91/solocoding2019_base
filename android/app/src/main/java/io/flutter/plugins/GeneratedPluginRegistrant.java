@@ -6,6 +6,7 @@ import com.baseflow.flutter.plugin.geolocator.GeolocatorPlugin;
 import com.baseflow.googleapiavailability.GoogleApiAvailabilityPlugin;
 import io.flutter.plugins.imagepicker.ImagePickerPlugin;
 import com.baseflow.permissionhandler.PermissionHandlerPlugin;
+import io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin;
 
 /**
  * Generated file. Do not edit.
@@ -20,6 +21,7 @@ public final class GeneratedPluginRegistrant {
     GoogleApiAvailabilityPlugin.registerWith(registry.registrarFor("com.baseflow.googleapiavailability.GoogleApiAvailabilityPlugin"));
     ImagePickerPlugin.registerWith(registry.registrarFor("io.flutter.plugins.imagepicker.ImagePickerPlugin"));
     PermissionHandlerPlugin.registerWith(registry.registrarFor("com.baseflow.permissionhandler.PermissionHandlerPlugin"));
+    SharedPreferencesPlugin.registerWith(registry.registrarFor("io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin"));
   }
 
   private static boolean alreadyRegisteredWith(PluginRegistry registry) {
